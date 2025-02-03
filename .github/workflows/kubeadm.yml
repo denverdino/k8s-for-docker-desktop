@@ -16,7 +16,12 @@ jobs:
       - name: Set environment variables
         run: |
           # Refer https://docs.docker.com/desktop/release-notes/ to get the K8s release version
-          echo "RELEASE=v1.31.4" >> $GITHUB_ENV
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          if [[ $BRANCH_NAME == "main" ]]; then
+            echo "RELEASE=v1.31.4" >> $GITHUB_ENV
+          else
+            echo "RELEASE=$BRANCH_NAME" >> $GITHUB_ENV
+          fi
           echo "ARCH=amd64" >> $GITHUB_ENV
           echo "DOWNLOAD_DIR=${{ github.workspace }}/download" >> $GITHUB_ENV
 
@@ -31,6 +36,11 @@ jobs:
 
       - name: List Kubernetes images with Aliyun registry mapping
         run: |
+          IMAGE_FILE=${{ github.workspace }}/images.properties
+          echo "# Original images.properties"
+          cat $IMAGE_FILE
+          echo ""
+          echo "# Generated images.properties"
           cd $DOWNLOAD_DIR
           ./kubeadm config images list --kubernetes-version ${{ env.RELEASE }} | awk '
           {
@@ -39,12 +49,19 @@ jobs:
               } else {
                   print $0 "=" "registry.cn-hangzhou.aliyuncs.com/google_containers/" substr($0, index($0, "/") + 1)
               }
-          }'
+          }' | tee $IMAGE_FILE
           REPO_NAME=desktop-kubernetes
           curl -s "https://hub.docker.com/v2/repositories/docker/$REPO_NAME/tags/" | \
           jq -r '.results[].name' | \
           grep "$RELEASE" | \
           awk -v repo="docker/$REPO_NAME" -v registry="registry.cn-hangzhou.aliyuncs.com/docker-containers/$REPO_NAME" \
-            '{print repo ":" $1 "=" registry ":" $1}'
-          echo docker/desktop-vpnkit-controller:dc331cb22850be0cdd97c84a9cfecaf44a1afb6e=registry.cn-hangzhou.aliyuncs.com/docker-containers/desktop-vpnkit-controller:dc331cb22850be0cdd97c84a9cfecaf44a1afb6e
-          echo docker/desktop-storage-provisioner:v2.0=registry.cn-hangzhou.aliyuncs.com/docker-containers/desktop-storage-provisioner:v2.0
+            '{print repo ":" $1 "=" registry ":" $1}' | tee -a $IMAGE_FILE
+          echo docker/desktop-vpnkit-controller:dc331cb22850be0cdd97c84a9cfecaf44a1afb6e=registry.cn-hangzhou.aliyuncs.com/docker-containers/desktop-vpnkit-controller:dc331cb22850be0cdd97c84a9cfecaf44a1afb6e | tee -a $IMAGE_FILE
+          echo docker/desktop-storage-provisioner:v2.0=registry.cn-hangzhou.aliyuncs.com/docker-containers/desktop-storage-provisioner:v2.0 | tee -a $IMAGE_FILE
+          if [ "$BRANCH_NAME" != "master" ]; then
+            git config --global user.email "denverdino@gmail.com"
+            git config --global user.name "denverdino"
+            git add $IMAGE_FILE
+            git commit -m "Update images.properties with Kubernetes release: $BRANCH_NAME"
+            git push
+          fi
