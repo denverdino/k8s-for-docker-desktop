@@ -1,0 +1,49 @@
+name: Fetch Kubeadm and List Images
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  fetch-kubeadm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set environment variables
+        run: |
+          echo "RELEASE=v1.30.5" >> $GITHUB_ENV
+          echo "ARCH=amd64" >> $GITHUB_ENV
+          echo "DOWNLOAD_DIR=${{ github.workspace }}/download" >> $GITHUB_ENV
+
+      - name: Create download directory
+        run: mkdir -p $DOWNLOAD_DIR
+
+      - name: Download kubeadm
+        run: |
+          cd $DOWNLOAD_DIR
+          sudo curl -L --remote-name-all https://dl.k8s.io/release/${{ env.RELEASE }}/bin/linux/${{ env.ARCH }}/kubeadm
+          sudo chmod +x kubeadm
+
+      - name: List Kubernetes images with Aliyun registry mapping
+        run: |
+          cd $DOWNLOAD_DIR
+          ./kubeadm config images list --kubernetes-version ${{ env.RELEASE }} | awk '
+          {
+              if ($0 ~ /registry.k8s.io\/coredns\/coredns/) {
+                  print $0 "=" "registry.cn-hangzhou.aliyuncs.com/google_containers/coredns:" substr($0, index($0, ":") + 1)
+              } else {
+                  print $0 "=" "registry.cn-hangzhou.aliyuncs.com/google_containers/" substr($0, index($0, "/") + 1)
+              }
+          }'
+          REPO_NAME=desktop-kubernetes
+          curl -s "https://hub.docker.com/v2/repositories/docker/$REPO_NAME/tags/" | \
+          jq -r '.results[].name' | \
+          grep "$RELEASE" | \
+          awk -v repo="docker/$REPO_NAME" -v registry="registry.cn-hangzhou.aliyuncs.com/docker-containers/$REPO_NAME" \
+            '{print repo ":" $1 "=" registry ":" $1}'
+          echo docker/desktop-vpnkit-controller:dc331cb22850be0cdd97c84a9cfecaf44a1afb6e=registry.cn-hangzhou.aliyuncs.com/docker-containers/desktop-vpnkit-controller:dc331cb22850be0cdd97c84a9cfecaf44a1afb6e
+          echo docker/desktop-storage-provisioner:v2.0=registry.cn-hangzhou.aliyuncs.com/docker-containers/desktop-storage-provisioner:v2.0
