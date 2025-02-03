@@ -15,7 +15,8 @@ jobs:
 
       - name: Set environment variables
         run: |
-          echo "RELEASE=v1.30.5" >> $GITHUB_ENV
+          # Refer https://docs.docker.com/desktop/release-notes/ to get the K8s release version
+          echo "RELEASE=v1.31.4" >> $GITHUB_ENV
           echo "ARCH=amd64" >> $GITHUB_ENV
           echo "DOWNLOAD_DIR=${{ github.workspace }}/download" >> $GITHUB_ENV
 
