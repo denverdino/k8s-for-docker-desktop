@@ -4,22 +4,10 @@
 
 NOTE: 
 * Please read and follow [docker subscription service agreement](https://www.docker.com/legal/docker-subscription-service-agreement/), If you don't accept that please select other opensource project, e.g. [Minikube](https://minikube.sigs.k8s.io/docs/) .
-* The master branch is tested with Docker Desktop for Mac/Windows version 4.37.0 (with Docker 27.4.0 and Kubernetes v1.31.4). 
+* The master branch is for Kubernetes v1.34.3. 
 * If you want to use with other version, pls check version of Kubernetes，Docker -> About Docker Desktop
     ![about](images/about.png)
-    * For Kubernetes v1.31.4, please use the v1.31.4 branch ```git checkout v1.31.4```
-    * For Kubernetes v1.30.5, please use the v1.30.5 branch ```git checkout v1.30.5```
-    * For Kubernetes v1.30.2, please use the v1.30.2 branch ```git checkout v1.30.2```
-    * For Kubernetes v1.29.2, please use the v1.29.2 branch ```git checkout v1.29.2```
-    * For Kubernetes v1.29.1, please use the v1.29.1 branch ```git checkout v1.29.1```
-    * For Kubernetes v1.28.2, please use the v1.28.2 branch ```git checkout v1.28.2```
-    * For Kubernetes v1.27.2, please use the v1.27.2 branch ```git checkout v1.27.2```
-    * For Kubernetes v1.25.9, please use the v1.25.9 branch ```git checkout v1.25.9```
-    * For Kubernetes v1.25.4, please use the v1.25.4 branch ```git checkout v1.25.4```
-    * For Kubernetes v1.25.2, please use the v1.25.2 branch ```git checkout v1.25.2```
-    * For Kubernetes v1.25.0, please use the v1.25.0 branch ```git checkout v1.25.0```
-    * For Kubernetes v1.24.2, please use the v1.24.2 branch ```git checkout v1.24.2```
-    
+
 
 
 ### Enable Kubernetes on Docker Desktop
