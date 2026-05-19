@@ -1,9 +1,6 @@
 name: Fetch Kubeadm and List Images
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
@@ -17,8 +14,8 @@ jobs:
         run: |
           # Refer https://docs.docker.com/desktop/release-notes/ to get the K8s release version
           BRANCH_NAME="${GITHUB_REF#refs/heads/}"
-          if [[ $BRANCH_NAME == "main" ]]; then
-            echo "RELEASE=v1.31.4" >> $GITHUB_ENV
+          if [[ $BRANCH_NAME == "master" ]]; then
+            echo "RELEASE=v1.34.3" >> $GITHUB_ENV
           else
             echo "RELEASE=$BRANCH_NAME" >> $GITHUB_ENV
           fi
@@ -31,7 +28,7 @@ jobs:
       - name: Download kubeadm
         run: |
           cd $DOWNLOAD_DIR
-          sudo curl -L --remote-name-all https://dl.k8s.io/release/${{ env.RELEASE }}/bin/linux/${{ env.ARCH }}/kubeadm
+          sudo curl -f -L --remote-name-all https://dl.k8s.io/release/${{ env.RELEASE }}/bin/linux/${{ env.ARCH }}/kubeadm
           sudo chmod +x kubeadm
 
       - name: List Kubernetes images with Aliyun registry mapping
